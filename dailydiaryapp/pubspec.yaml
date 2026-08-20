@@ -44,6 +44,8 @@ dependencies:
   # Icons සහ Splash Screen සඳහා
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.4.0
+  record: ^5.1.2
+  audioplayers: ^6.0.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -101,3 +103,17 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  # App Launcher Icon Settings
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/app_logo.png"
+
+# Splash Screen Settings
+flutter_native_splash:
+  color: "#673AB7" # Deep Purple Background Color
+  image: assets/app_logo.png
+  android_12:
+    image: assets/app_logo.png
+    color: "#673AB7"

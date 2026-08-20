@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../core/utils/image_helper.dart';
+import '../../core/utils/audio_helper.dart';
 import '../../data/models/diary_entry_model.dart';
 import '../../viewmodels/diary_viewmodel.dart';
 
@@ -19,6 +18,11 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
   String? _selectedImagePath;
+  String? _selectedAudioPath;
+
+  final AudioHelper _audioHelper = AudioHelper();
+  bool _isRecording = false;
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -26,41 +30,44 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     _titleController = TextEditingController(text: widget.entryToEdit?.title ?? '');
     _contentController = TextEditingController(text: widget.entryToEdit?.content ?? '');
     _selectedImagePath = widget.entryToEdit?.imagePath;
+    _selectedAudioPath = widget.entryToEdit?.audioPath;
   }
 
-  // Image එකක් Pick කරන Dialog එක
-  void _showImageSourceBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from Gallery'),
-              onTap: () async {
-                Navigator.pop(context);
-                String? imagePath = await ImageHelper.pickAndSaveImage(ImageSource.gallery);
-                if (imagePath != null) {
-                  setState(() => _selectedImagePath = imagePath);
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Take a Photo'),
-              onTap: () async {
-                Navigator.pop(context);
-                String? imagePath = await ImageHelper.pickAndSaveImage(ImageSource.camera);
-                if (imagePath != null) {
-                  setState(() => _selectedImagePath = imagePath);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  @override
+  void dispose() {
+    _audioHelper.dispose();
+    super.dispose();
+  }
+
+  // Record Handle කිරීම
+  Future<void> _handleRecording() async {
+    if (_isRecording) {
+      String? path = await _audioHelper.stopRecording();
+      setState(() {
+        _isRecording = false;
+        _selectedAudioPath = path;
+      });
+    } else {
+      await _audioHelper.startRecording();
+      setState(() {
+        _isRecording = true;
+      });
+    }
+  }
+
+  // Audio Playback Handle කිරීම
+  Future<void> _handleAudioPlay() async {
+    if (_selectedAudioPath == null) return;
+
+    if (_isPlaying) {
+      await _audioHelper.stopAudio();
+      setState(() => _isPlaying = false);
+    } else {
+      setState(() => _isPlaying = true);
+      await _audioHelper.playAudio(_selectedAudioPath!, () {
+        setState(() => _isPlaying = false);
+      });
+    }
   }
 
   void _saveEntry() {
@@ -82,6 +89,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         content: content,
         date: DateTime.now().toIso8601String(),
         imagePath: _selectedImagePath,
+        audioPath: _selectedAudioPath,
       );
       viewModel.addEntry(newEntry);
     } else {
@@ -91,7 +99,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         content: content,
         date: widget.entryToEdit!.date,
         imagePath: _selectedImagePath,
-        audioPath: widget.entryToEdit!.audioPath,
+        audioPath: _selectedAudioPath,
       );
       viewModel.updateEntry(updatedEntry);
     }
@@ -108,10 +116,6 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         title: Text(isEditing ? 'Edit Diary Entry' : 'Add Diary Entry'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.image),
-            onPressed: _showImageSourceBottomSheet,
-          ),
-          IconButton(
             icon: const Icon(Icons.check),
             onPressed: _saveEntry,
           ),
@@ -122,28 +126,39 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Selected Image එක Preview කිරීම
-            if (_selectedImagePath != null) ...[
-              Stack(
-                alignment: Alignment.topRight,
+            // Voice Record Controls
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(_selectedImagePath!),
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
                   IconButton(
-                    icon: const Icon(Icons.cancel, color: Colors.red, size: 30),
-                    onPressed: () => setState(() => _selectedImagePath = null),
+                    icon: Icon(_isRecording ? Icons.stop : Icons.mic,
+                        color: _isRecording ? Colors.red : Colors.deepPurple),
+                    onPressed: _handleRecording,
                   ),
+                  Text(_isRecording ? "Recording..." : "Record Voice Note"),
+                  const Spacer(),
+                  if (_selectedAudioPath != null) ...[
+                    IconButton(
+                      icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: Colors.deepPurple),
+                      onPressed: _handleAudioPlay,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.grey),
+                      onPressed: () {
+                        setState(() => _selectedAudioPath = null);
+                      },
+                    ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 12),
-            ],
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
