@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+// Services & Models Imports
+import 'core/services/notification_service.dart';
 import 'viewmodels/diary_viewmodel.dart';
-import 'views/home/home_screen.dart';
+
+// Views Imports
 import 'views/auth/lock_screen.dart';
 
-void main() {
+void main() async {
+  // Flutter Widgets Binding Initialize කිරීම
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Notification System එක Initialize කිරීම
+  await NotificationService.initNotification();
+
+  // පරිශීලකයා SharedPreferences වල Save කර ඇති Reminder Time එක ලබාගෙන Auto-Schedule කිරීම
+  final savedTime = await NotificationService.getSavedNotificationTime();
+  await NotificationService.scheduleDailyNotification(
+    hour: savedTime.hour,
+    minute: savedTime.minute,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -24,10 +41,14 @@ class DailyDiaryApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Daily Diary',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          primary: Colors.deepPurple,
+        ),
         useMaterial3: true,
       ),
-      home: const LockScreen(), // <--- LockScreen එක මෙතැනට දෙන්න
+      // App එක ආරම්භයේදීම Security Lock Screen එකට යොමු කෙරේ
+      home: const LockScreen(),
     );
   }
 }

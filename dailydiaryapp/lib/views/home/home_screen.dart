@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/diary_viewmodel.dart';
 import '../add_entry_screen.dart';
+import '../settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -91,6 +92,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 viewModel.clearFilter();
               },
             ),
+            IconButton(
+  icon: const Icon(Icons.settings),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+    );
+  },
+),
         ],
       ),
       body: Consumer<DiaryViewModel>(
