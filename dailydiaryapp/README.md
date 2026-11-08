@@ -116,25 +116,4 @@ Grant them when the app asks, or reminders, voice notes, and image attachments w
 
 ---
 
-## ❓ Troubleshooting
 
-| Problem | Fix |
-|---------|-----|
-| `flutter: command not found` | Add Flutter's `bin` folder to your PATH, then reopen the terminal |
-| Gradle / Java version error | Make sure JDK 17 is installed and `JAVA_HOME` points to it |
-| Android licenses error | Run `flutter doctor --android-licenses` and accept all |
-| Reminders not showing | Allow notification and exact alarm permission in phone settings; disable battery optimization for the app |
-| Biometric not working on emulator | Set up a fingerprint in the emulator's Security settings first |
-
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create a branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m "Add your feature"`
-4. Push: `git push origin feature/your-feature`
-5. Open a Pull Request
-
----
