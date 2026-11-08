@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart'; // <-- මේ Import එක අනිවාර්යයෙන්ම තිබිය යුතුය
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -10,6 +11,13 @@ class NotificationService {
 
   static Future<void> initNotification() async {
     tz.initializeTimeZones();
+    
+    try {
+      final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+    } catch (_) {
+      tz.setLocalLocation(tz.getLocation('Asia/Colombo'));
+    }
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -33,7 +41,6 @@ class NotificationService {
     required int hour,
     required int minute,
   }) async {
-    // කලින් තිබූ Schedule එක Cancel කිරීම
     await _notificationsPlugin.cancelAll();
 
     await _notificationsPlugin.zonedSchedule(
@@ -86,5 +93,26 @@ class NotificationService {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;
+  }
+
+  // Instant Notification එකක් සැනින් පෙන්වීමට
+  static Future<void> showTestNotification() async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'daily_diary_channel',
+      'Daily Diary Reminders',
+      channelDescription: 'Reminder to write daily diary entries',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await _notificationsPlugin.show(
+      0,
+      "Test Notification 🔔",
+      "If you see this, notifications are working!",
+      platformChannelSpecifics,
+    );
   }
 }

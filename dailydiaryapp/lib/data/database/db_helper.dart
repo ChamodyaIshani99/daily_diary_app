@@ -25,7 +25,7 @@ class DBHelper {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE entries(
@@ -33,10 +33,15 @@ class DBHelper {
             title TEXT,
             content TEXT,
             date TEXT,
-            imagePath TEXT,
+            imagePaths TEXT,
             audioPath TEXT
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute("ALTER TABLE entries ADD COLUMN imagePaths TEXT;");
+        }
       },
     );
   }
@@ -50,13 +55,9 @@ class DBHelper {
     );
   }
 
-  Future<List<DiaryEntry>> getEntries() async {
+ Future<List<DiaryEntry>> getEntries() async {
     final db = await database;
-
-    final List<Map<String, dynamic>> maps = await db.query(
-      'entries',
-      orderBy: 'id DESC',
-    );
+    final maps = await db.query('entries', orderBy: 'id DESC');
 
     return List.generate(
       maps.length,

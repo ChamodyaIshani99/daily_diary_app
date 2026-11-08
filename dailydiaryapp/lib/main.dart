@@ -15,7 +15,11 @@ void main() async {
   // Notification System එක Initialize කිරීම
   await NotificationService.initNotification();
 
-  // පරිශීලකයා SharedPreferences වල Save කර ඇති Reminder Time එක ලබාගෙන Auto-Schedule කිරීම
+  // 1. Instant Test Notification (App එක Open වෙද්දී සැනින් Notification එකක් එනවාද බැලීමට)
+  // (මෙය පරීක්ෂා කර බැලීමෙන් පසු අයින් කර දැමිය හැක)
+  await NotificationService.showTestNotification();
+
+  // 2. පරිශීලකයා SharedPreferences වල Save කර ඇති Reminder Time එක ලබාගෙන Auto-Schedule කිරීම
   final savedTime = await NotificationService.getSavedNotificationTime();
   await NotificationService.scheduleDailyNotification(
     hour: savedTime.hour,

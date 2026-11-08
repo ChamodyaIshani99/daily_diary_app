@@ -6,22 +6,24 @@ import 'package:path/path.dart' as path;
 class ImageHelper {
   static final ImagePicker _picker = ImagePicker();
 
-  // Gallery එකෙන් හෝ Camera එකෙන් Photo එකක් Pick කිරීම
-  static Future<String?> pickAndSaveImage(ImageSource source) async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: source,
-      imageQuality: 70, // File size එක අඩු කිරීමට
+  // එකවර Images කිහිපයක් Pick කිරීම
+  static Future<List<String>> pickMultipleImages() async {
+    final List<XFile> pickedFiles = await _picker.pickMultiImage(
+      imageQuality: 70,
     );
 
-    if (pickedFile == null) return null;
+    if (pickedFiles.isEmpty) return [];
 
-    // Local Storage Path එක ලබාගැනීම
+    List<String> savedPaths = [];
     final directory = await getApplicationDocumentsDirectory();
-    final String fileName = path.basename(pickedFile.path);
-    final String savedPath = path.join(directory.path, fileName);
 
-    // Image එක Permanent Local Storage එකට Copy කිරීම
-    final File localImage = await File(pickedFile.path).copy(savedPath);
-    return localImage.path;
+    for (var file in pickedFiles) {
+      final String fileName = path.basename(file.path);
+      final String savedPath = path.join(directory.path, fileName);
+      final File localImage = await File(file.path).copy(savedPath);
+      savedPaths.add(localImage.path);
+    }
+
+    return savedPaths;
   }
 }

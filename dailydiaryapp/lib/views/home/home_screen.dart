@@ -92,15 +92,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 viewModel.clearFilter();
               },
             ),
-            IconButton(
-  icon: const Icon(Icons.settings),
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-    );
-  },
-),
+          // Settings Screen Button
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
         ],
       ),
       body: Consumer<DiaryViewModel>(
@@ -112,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (viewModel.entries.isEmpty) {
             return const Center(
               child: Text(
-                "No Diary Entries Found!",
+                "No Diary Entries Found!\nTap '+' to add one.",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
@@ -150,11 +151,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
-                    leading: entry.imagePath != null
+                    // Multi-image list එකෙන් පළමු Image එක Thumbnail එකක් ලෙස පෙන්වීම
+                    leading: entry.imagePaths.isNotEmpty
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.file(
-                              File(entry.imagePath!),
+                              File(entry.imagePaths.first),
                               width: 60,
                               height: 60,
                               fit: BoxFit.cover,
@@ -176,9 +178,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(color: Colors.black87),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          formattedDate,
-                          style: TextStyle(fontSize: 12, color: Colors.deepPurple.shade400),
+                        Row(
+                          children: [
+                            Text(
+                              formattedDate,
+                              style: TextStyle(fontSize: 12, color: Colors.deepPurple.shade400),
+                            ),
+                            // Voice note එකක් ඇතොත් Mic icon එකක් පෙන්වීම
+                            if (entry.audioPath != null && entry.audioPath!.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              const Icon(Icons.mic, size: 14, color: Colors.deepPurple),
+                            ],
+                          ],
                         ),
                       ],
                     ),

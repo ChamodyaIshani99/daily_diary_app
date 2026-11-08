@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/utils/audio_helper.dart';
 import '../../core/utils/image_helper.dart';
@@ -20,7 +19,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
   
-  String? _selectedImagePath;
+  List<String> _selectedImagePaths = [];
   String? _selectedAudioPath;
 
   final AudioHelper _audioHelper = AudioHelper();
@@ -32,7 +31,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     super.initState();
     _titleController = TextEditingController(text: widget.entryToEdit?.title ?? '');
     _contentController = TextEditingController(text: widget.entryToEdit?.content ?? '');
-    _selectedImagePath = widget.entryToEdit?.imagePath;
+    _selectedImagePaths = widget.entryToEdit?.imagePaths ?? [];
     _selectedAudioPath = widget.entryToEdit?.audioPath;
   }
 
@@ -42,42 +41,16 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     super.dispose();
   }
 
-  // 1. Image Source Selection (Gallery / Camera)
-  void _showImageSourceBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from Gallery'),
-              onTap: () async {
-                Navigator.pop(context);
-                String? imagePath = await ImageHelper.pickAndSaveImage(ImageSource.gallery);
-                if (imagePath != null) {
-                  setState(() => _selectedImagePath = imagePath);
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Take a Photo'),
-              onTap: () async {
-                Navigator.pop(context);
-                String? imagePath = await ImageHelper.pickAndSaveImage(ImageSource.camera);
-                if (imagePath != null) {
-                  setState(() => _selectedImagePath = imagePath);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  // Pick Multiple Images
+  Future<void> _pickImages() async {
+    List<String> paths = await ImageHelper.pickMultipleImages();
+    if (paths.isNotEmpty) {
+      setState(() {
+        _selectedImagePaths.addAll(paths);
+      });
+    }
   }
 
-  // 2. Audio Recording Handle කිරීම
   Future<void> _handleRecording() async {
     if (_isRecording) {
       String? path = await _audioHelper.stopRecording();
@@ -93,7 +66,6 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     }
   }
 
-  // 3. Audio Playback Handle කිරීම
   Future<void> _handleAudioPlay() async {
     if (_selectedAudioPath == null) return;
 
@@ -108,7 +80,6 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     }
   }
 
-  // 4. Save Entry (Insert or Update)
   void _saveEntry() {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
@@ -127,7 +98,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         title: title,
         content: content,
         date: DateTime.now().toIso8601String(),
-        imagePath: _selectedImagePath,
+        imagePaths: _selectedImagePaths,
         audioPath: _selectedAudioPath,
       );
       viewModel.addEntry(newEntry);
@@ -137,7 +108,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         title: title,
         content: content,
         date: widget.entryToEdit!.date,
-        imagePath: _selectedImagePath,
+        imagePaths: _selectedImagePaths,
         audioPath: _selectedAudioPath,
       );
       viewModel.updateEntry(updatedEntry);
@@ -154,12 +125,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Diary Entry' : 'Add Diary Entry'),
         actions: [
-          // Image Picker Icon
           IconButton(
             icon: const Icon(Icons.image),
-            onPressed: _showImageSourceBottomSheet,
+            onPressed: _pickImages, // Multi-image picker
           ),
-          // Save / Check Icon
           IconButton(
             icon: const Icon(Icons.check),
             onPressed: _saveEntry,
@@ -171,30 +140,46 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Selected Image Preview
-            if (_selectedImagePath != null) ...[
-              Stack(
-                alignment: Alignment.topRight,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(_selectedImagePath!),
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.cancel, color: Colors.red, size: 30),
-                    onPressed: () => setState(() => _selectedImagePath = null),
-                  ),
-                ],
+            // Selected Images Horizontal List Preview
+            if (_selectedImagePaths.isNotEmpty) ...[
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _selectedImagePaths.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              File(_selectedImagePaths[index]),
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.cancel, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                _selectedImagePaths.removeAt(index);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 12),
             ],
 
-            // Voice Recording Controls Container
+            // Voice Recording Controls
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -228,7 +213,6 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Title TextField
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
@@ -239,8 +223,6 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const Divider(),
-
-            // Content TextField
             TextField(
               controller: _contentController,
               maxLines: null,

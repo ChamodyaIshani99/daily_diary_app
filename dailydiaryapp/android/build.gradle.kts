@@ -15,7 +15,32 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
 subprojects {
+    // 1. Configure Java compatibility FIRST.
+    //    This must be inside afterEvaluate because AGP can otherwise overwrite it.
+    afterEvaluate {
+        if (plugins.hasPlugin("com.android.application") ||
+            plugins.hasPlugin("com.android.library")
+        ) {
+            extensions.configure<com.android.build.gradle.BaseExtension> {
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_17
+                    targetCompatibility = JavaVersion.VERSION_17
+                }
+            }
+        }
+    }
+
+    // 2. Configure Kotlin JVM target for all subprojects, including plugins.
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+
+    // 3. evaluationDependsOn MUST be placed AFTER the afterEvaluate block.
+    //    Placing it before causes the "project is already evaluated" error.
     project.evaluationDependsOn(":app")
 }
 

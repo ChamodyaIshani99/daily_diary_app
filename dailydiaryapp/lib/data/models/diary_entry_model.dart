@@ -3,7 +3,7 @@ class DiaryEntry {
   final String title;
   final String content;
   final String date;
-  final String? imagePath;
+  final List<String> imagePaths; // Images කිහිපයක් සඳහා List එකක්
   final String? audioPath;
 
   DiaryEntry({
@@ -11,30 +11,33 @@ class DiaryEntry {
     required this.title,
     required this.content,
     required this.date,
-    this.imagePath,
+    required this.imagePaths,
     this.audioPath,
   });
 
-  // Model එක SQLite එකට Save කරන්න Map (JSON) එකක් බවට හැරවීම
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'title': title,
       'content': content,
       'date': date,
-      'imagePath': imagePath,
+      // List එක Database එකට Save කරන්න string එකක් (comma separated) බවට හැරවීම
+      'imagePaths': imagePaths.join(','), 
       'audioPath': audioPath,
     };
   }
 
-  // SQLite එකෙන් එන Map එක Model Object එකක් බවට හැරවීම
   factory DiaryEntry.fromMap(Map<String, dynamic> map) {
+    // Database එකෙන් එන string එක නැවත List එකක් බවට හැරවීම
+    String imagesString = map['imagePaths'] ?? '';
+    List<String> loadedImages = imagesString.isNotEmpty ? imagesString.split(',') : [];
+
     return DiaryEntry(
       id: map['id'],
       title: map['title'],
       content: map['content'],
       date: map['date'],
-      imagePath: map['imagePath'],
+      imagePaths: loadedImages,
       audioPath: map['audioPath'],
     );
   }
