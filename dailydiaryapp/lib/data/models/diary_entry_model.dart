@@ -3,7 +3,7 @@ class DiaryEntry {
   final String title;
   final String content;
   final String date;
-  final List<String> imagePaths; // Images කිහිපයක් සඳහා List එකක්
+  final List<String> imagePaths; // A list for multiple images
   final String? audioPath;
 
   DiaryEntry({
@@ -21,14 +21,14 @@ class DiaryEntry {
       'title': title,
       'content': content,
       'date': date,
-      // List එක Database එකට Save කරන්න string එකක් (comma separated) බවට හැරවීම
+      // Convert the list to a single string for database storage (comma separated)
       'imagePaths': imagePaths.join(','), 
       'audioPath': audioPath,
     };
   }
 
   factory DiaryEntry.fromMap(Map<String, dynamic> map) {
-    // Database එකෙන් එන string එක නැවත List එකක් බවට හැරවීම
+    // Convert the string returned from the database back into a list
     String imagesString = map['imagePaths'] ?? '';
     List<String> loadedImages = imagesString.isNotEmpty ? imagesString.split(',') : [];
 

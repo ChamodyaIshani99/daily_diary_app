@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Provider.of<DiaryViewModel>(context, listen: false).fetchEntries());
   }
 
-  // Date Picker Dialog එක පෙන්වීම
+  // Show the date picker dialog
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onPressed: () => _selectDate(context),
           ),
-          // Clear Filter Button (Date filter එකක් දමා තිබේ නම් පමණක් පෙන්නයි)
+          // Clear filter button (shown only when a date filter is active)
           if (_selectedFilterDate != null)
             IconButton(
               icon: const Icon(Icons.filter_alt_off),
@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
-                    // Multi-image list එකෙන් පළමු Image එක Thumbnail එකක් ලෙස පෙන්වීම
+                    // Show the first image from the multi-image list as a thumbnail
                     leading: entry.imagePaths.isNotEmpty
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(8),
@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               formattedDate,
                               style: TextStyle(fontSize: 12, color: Colors.deepPurple.shade400),
                             ),
-                            // Voice note එකක් ඇතොත් Mic icon එකක් පෙන්වීම
+                            // Show a microphone icon when a voice note exists
                             if (entry.audioPath != null && entry.audioPath!.isNotEmpty) ...[
                               const SizedBox(width: 8),
                               const Icon(Icons.mic, size: 14, color: Colors.deepPurple),

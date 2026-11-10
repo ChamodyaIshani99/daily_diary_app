@@ -25,7 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  // Time Picker Dialog එක පෙන්වීම
+  // Show the time picker dialog
   Future<void> _pickTime() async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -37,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _selectedTime = picked;
       });
 
-      // අලුත් Time එකට Schedule කිරීම
+      // Schedule the new time
       await NotificationService.scheduleDailyNotification(
         hour: picked.hour,
         minute: picked.minute,

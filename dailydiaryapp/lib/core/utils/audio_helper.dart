@@ -11,7 +11,7 @@ class AudioHelper {
   bool isRecording = false;
   bool isPlaying = false;
 
-  // 1. Voice Record කිරීම ආරම්භය
+  // 1. Start voice recording
   Future<void> startRecording() async {
     if (await _audioRecorder.hasPermission()) {
       final Directory appDocDir = await getApplicationDocumentsDirectory();
@@ -25,14 +25,14 @@ class AudioHelper {
     }
   }
 
-  // 2. Voice Record කිරීම නවතා File Path එක ලබාගැනීම
+  // 2. Stop voice recording and get the file path
   Future<String?> stopRecording() async {
     final path = await _audioRecorder.stop();
     isRecording = false;
     return path;
   }
 
-  // 3. Audio Playback කිරීම
+  // 3. Play audio
   Future<void> playAudio(String filePath, Function onComplete) async {
     if (File(filePath).existsSync()) {
       await _audioPlayer.play(DeviceFileSource(filePath));
@@ -45,7 +45,7 @@ class AudioHelper {
     }
   }
 
-  // 4. Audio Stop කිරීම
+  // 4. Stop audio
   Future<void> stopAudio() async {
     await _audioPlayer.stop();
     isPlaying = false;

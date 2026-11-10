@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_timezone/flutter_timezone.dart'; // <-- මේ Import එක අනිවාර්යයෙන්ම තිබිය යුතුය
+import 'package:flutter_timezone/flutter_timezone.dart'; // <-- This import is required
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -36,7 +36,7 @@ class NotificationService {
     }
   }
 
-  // 1. User තෝරාගත් Time එකට Reminder එක Schedule කිරීම
+  // 1. Schedule a reminder for the time selected by the user
   static Future<void> scheduleDailyNotification({
     required int hour,
     required int minute,
@@ -63,13 +63,13 @@ class NotificationService {
       matchDateTimeComponents: DateTimeComponents.time,
     );
 
-    // Save Selected Time to Storage
+    // Save selected time to storage
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('notification_hour', hour);
     await prefs.setInt('notification_minute', minute);
   }
 
-  // 2. Saved කර ඇති Time එක Storage එකෙන් ගැනීම
+  // 2. Retrieve the saved time from storage
   static Future<TimeOfDay> getSavedNotificationTime() async {
     final prefs = await SharedPreferences.getInstance();
     final hour = prefs.getInt('notification_hour') ?? 20; // Default 8:00 PM
@@ -77,7 +77,7 @@ class NotificationService {
     return TimeOfDay(hour: hour, minute: minute);
   }
 
-  // 3. Notification Cancel කිරීම
+  // 3. Cancel notifications
   static Future<void> cancelNotifications() async {
     await _notificationsPlugin.cancelAll();
     final prefs = await SharedPreferences.getInstance();
@@ -95,7 +95,7 @@ class NotificationService {
     return scheduledDate;
   }
 
-  // Instant Notification එකක් සැනින් පෙන්වීමට
+  // Show an instant test notification immediately
   static Future<void> showTestNotification() async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(

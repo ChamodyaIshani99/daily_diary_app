@@ -6,7 +6,7 @@ import 'package:path/path.dart' as path;
 class ImageHelper {
   static final ImagePicker _picker = ImagePicker();
 
-  // එකවර Images කිහිපයක් Pick කිරීම
+  // Pick multiple images at once
   static Future<List<String>> pickMultipleImages() async {
     final List<XFile> pickedFiles = await _picker.pickMultiImage(
       imageQuality: 70,

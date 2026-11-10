@@ -23,7 +23,7 @@ class DiaryViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 1. Text Search Logic
+  // 1. Text search logic
   void searchEntries(String query) {
     if (query.isEmpty) {
       _filteredEntries = List.from(_allEntries);
@@ -37,7 +37,7 @@ class DiaryViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 2. Date Filter Logic
+  // 2. Date filter logic
   void filterByDate(DateTime selectedDate) {
     _filteredEntries = _allEntries.where((entry) {
       final entryDate = DateTime.tryParse(entry.date);
@@ -49,7 +49,7 @@ class DiaryViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Filter එක Clear කර සියලුම Entries නැවත පෙන්වීම
+  // Clear the filter and show all entries again
   void clearFilter() {
     _filteredEntries = List.from(_allEntries);
     notifyListeners();
